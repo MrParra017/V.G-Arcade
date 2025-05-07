@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧱 Dodge Blocks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(45deg, #0b0010, #1f0030);
+      background-size: 400% 400%;
+      animation: bgFlow 20s ease infinite;
+      font-family: 'Press Start 2P', cursive;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    @keyframes bgFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    canvas {
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 4px solid #ff0080;
+      display: block;
+      margin: 30px auto;
+      box-shadow: 0 0 20px #ff0080;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      text-shadow: 0 0 10px #00e5ff;
+    }
+
+    .back {
+      display: block;
+      color: #00e5ff;
+      text-decoration: none;
+      margin-top: 20px;
+      font-size: 0.8rem;
+      text-shadow: 0 0 5px #00e5ff;
+    }
+
+    .decorative-image {
+      display: block;
+      margin: 20px auto;
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧱 Dodge the Blocks!</h1>
+  
+  <!-- New Image -->
+  <img src="your-image-file.png" alt="Decorative Image" class="decorative-image">
+
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <a class="back" href="index.html">← Back to Arcade</a>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Game settings
+    const player = { x: 175, y: 450, width: 50, height: 20, speed: 5 };
+    const blocks = [];
+    const blockWidth = 50;
+    const blockHeight = 20;
+    const blockSpeedStart = 2;
+
+    let keys = {};
+    let score = 0;
+    let gameOver = false;
+    let frameCount = 0;
+    let blockSpeed = blockSpeedStart;
+
+    // Player controls
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function drawPlayer() {
+      ctx.fillStyle = "#00e5ff";
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawBlocks() {
+      ctx.fillStyle = "#ff0080";
+      blocks.forEach((block) => {
+        ctx.fillRect(block.x, block.y, block.width, block.height);
+      });
+    }
+
+    function updateBlocks() {
+      blocks.forEach((block) => {
+        block.y += blockSpeed;
+      });
+
+      // Remove blocks that went off screen
+      while (blocks.length > 0 && blocks[0].y > canvas.height) {
+        blocks.shift();
+      }
+
+      // Add new block every 50 frames
+      if (frameCount % 50 === 0) {
+        const x = Math.floor(Math.random() * (canvas.width - blockWidth));
+        blocks.push({ x: x, y: -blockHeight, width: blockWidth, height: blockHeight });
+        blockSpeed += 0.05; // increase difficulty
+      }
+    }
+
+    function checkCollision() {
+      for (let block of blocks) {
+        if (
+          player.x < block.x + block.width &&
+          player.x + player.width > block.x &&
+          player.y < block.y + block.height &&
+          player.y + player.height > block.y
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function updatePlayer() {
+      if (keys["ArrowLeft"] && player.x > 0) {
+        player.x -= player.speed;
+      }
+      if (keys["ArrowRight"] && player.x + player.width < canvas.width) {
+        player.x += player.speed;
+      }
+    }
+
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "14px 'Press Start 2P', cursive";
+      ctx.fillText("Score: " + score, 10, 20);
+    }
+
+    function loop() {
+      if (gameOver) {
+        ctx.fillStyle = "#ff0080";
+        ctx.font = "18px 'Press Start 2P', cursive";
+        ctx.fillText("Game Over!", 100, 250);
+        ctx.fillText("Score: " + score, 120, 280);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      updatePlayer();
+      updateBlocks();
+
+      drawPlayer();
+      drawBlocks();
+      drawScore();
+
+      if (checkCollision()) {
+        gameOver = true;
+      } else {
+        frameCount++;
+        score++;
+        requestAnimationFrame(loop);
+      }
+    }
+
+    loop();
+  </script>
+</body>
+</html>

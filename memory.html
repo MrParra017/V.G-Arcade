@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧠 Memory Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --pink: #ff00cc;
+      --blue: #00e5ff;
+      --bg: #0b0010;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(45deg, var(--bg), #1a0022);
+      background-size: 400% 400%;
+      animation: flow 20s ease infinite;
+      color: white;
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    @keyframes flow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      color: var(--pink);
+      text-shadow: 0 0 10px var(--pink);
+      margin-bottom: 20px;
+    }
+
+    #moves {
+      margin-bottom: 20px;
+      font-size: 0.8rem;
+      text-shadow: 0 0 4px var(--blue);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      font-size: 2rem;
+      color: var(--pink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-shadow: 0 0 5px var(--pink);
+      user-select: none;
+      transition: transform 0.2s ease;
+    }
+
+    .card.revealed {
+      background-color: rgba(0, 229, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .card.matched {
+      background-color: rgba(0, 255, 128, 0.3);
+      color: #00ff9d;
+      border-color: #00ff9d;
+      text-shadow: 0 0 5px #00ff9d;
+    }
+
+    .message {
+      margin-top: 30px;
+      font-size: 0.9rem;
+      color: var(--pink);
+      text-shadow: 0 0 6px var(--pink);
+    }
+
+    .back {
+      display: block;
+      margin-top: 30px;
+      color: var(--blue);
+      font-size: 0.7rem;
+      text-decoration: none;
+      text-shadow: 0 0 4px var(--blue);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 MEMORY MATCH</h1>
+  <div id="moves">Moves: 0</div>
+  <div class="grid" id="grid"></div>
+  <div class="message" id="message"></div>
+  <a class="back" href="index.html">← Back to Arcade</a>
+
+  <script>
+    const emojis = ["🎮", "🚀", "👾", "🕹️", "💾", "💻"];
+    let cards = [];
+    let revealed = [];
+    let matchedCount = 0;
+    let moves = 0;
+
+    const grid = document.getElementById("grid");
+    const message = document.getElementById("message");
+    const movesText = document.getElementById("moves");
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startGame() {
+      const pairSet = [...emojis, ...emojis];
+      shuffle(pairSet);
+      cards = [];
+      matchedCount = 0;
+      moves = 0;
+      movesText.textContent = "Moves: 0";
+      message.textContent = "";
+      grid.innerHTML = "";
+
+      pairSet.forEach((symbol, index) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.symbol = symbol;
+        card.dataset.index = index;
+        card.innerText = "";
+        card.addEventListener("click", handleCardClick);
+        grid.appendChild(card);
+        cards.push(card);
+      });
+    }
+
+    function handleCardClick(e) {
+      const card = e.target;
+      const symbol = card.dataset.symbol;
+
+      if (card.classList.contains("matched") || revealed.includes(card)) return;
+
+      card.classList.add("revealed");
+      card.innerText = symbol;
+      revealed.push(card);
+
+      if (revealed.length === 2) {
+        moves++;
+        movesText.textContent = `Moves: ${moves}`;
+        const [c1, c2] = revealed;
+
+        if (c1.dataset.symbol === c2.dataset.symbol) {
+          c1.classList.add("matched");
+          c2.classList.add("matched");
+          matchedCount++;
+          if (matchedCount === emojis.length) {
+            message.textContent = "🎉 You Won! Refresh to play again!";
+          }
+        } else {
+          setTimeout(() => {
+            c1.classList.remove("revealed");
+            c2.classList.remove("revealed");
+            c1.innerText = "";
+            c2.innerText = "";
+          }, 800);
+        }
+
+        revealed = [];
+      }
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
